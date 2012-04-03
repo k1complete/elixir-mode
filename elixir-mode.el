@@ -75,8 +75,10 @@
   "do"
   "after"
   "for"
-  "module"
-	"private"
+  "defmodule"
+  "defmacro"
+  "defdelegate"
+  "defp"
   "def"
   "if"
   "when"
@@ -210,7 +212,7 @@
                (progn
                  (setq cur-indent (current-indentation))
                  (setq not-indented nil))
-                 (if (looking-at "^[ \t]*\\(do\\|after\\|module\\|def\\|if\\|case\\|else\\|elsif\\|receive\\|after\\|try\\|catch\\)")
+                 (if (looking-at "^[ \t]*\\(do\\|after\\|defdelegate\\|defmacro\\|defmodule\\|def\\|defp\\|if\\|case\\|else\\|elsif\\|receive\\|after\\|try\\|catch\\)")
                    (progn
                      (setq cur-indent (+ (current-indentation) default-tab-width))
                      (setq not-indented nil))
