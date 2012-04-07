@@ -71,24 +71,43 @@
 	:group 'elixir)
 
 (defvar elixir-mode-keyword-names '(
+  "fn"
   "->"
+  "quote"
+  "unquote"
+  "unquote_splicing"
+  "var"
   "do"
   "after"
   "for"
   "defmodule"
   "defmacro"
   "defdelegate"
-  "defp"
+  "defprotocol"
+  "defimpl"
   "def"
+  "defp"
+  "defrecord"
+  "refer"
+  "require"
+  "import"
+  "use"
   "if"
+  "true"
+  "false"
   "when"
   "case"
   "match"
+  "throw"
   "then"
   "else"
   "elsif"
   "try"
   "catch"
+  "rescue"
+  "fn"
+  "receive"
+  "" 
   "end")
 "Elixir mode keywords.")
 (defvar elixir-mode-module-names '(
@@ -127,7 +146,14 @@
   "UnboundMethod")
 "Elixir mode modules.")
 (defvar elixir-mode-builtin-names '(
-  "Erlang")
+  "Erlang"
+  "__MODULE__"
+  "__FUNCTION__"
+  "__LINE__"
+  "__FILE__"
+  "__MAIN__"
+  "__LOCAL__"
+)
 "Elixir mode builtins.")
 (defvar elixir-mode-operator-names '(
   "+"
@@ -158,6 +184,7 @@
 	":="
 	"<-")
 "Elixir mode operators.")
+(defvar elixir-basic-offset 4)
 
 (defvar font-lock-operator-face 'font-lock-operator-face)
 (defface font-lock-operator-face
@@ -190,7 +217,13 @@
     '("\\<\\(true\\|false\\|nil\\)\\>" . font-lock-atom-face)                                                                           ; atoms, boolean
 		'("'\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
 "Highlighting for Elixir mode.")
-
+(defun find-last-indent (s)
+  "find last indent for s"
+  (let ((f nil))
+    (progn (while (not (or (setq f (looking-at s)) (bobp)))
+	     (forward-line -1))
+	   f)))
+  
 (defun elixir-mode-indent-line ()
   "Indent current line as Elixir code."
   (interactive)
@@ -198,28 +231,35 @@
   (if (bobp)
     (indent-line-to 0)
     (let ((not-indented t) cur-indent)
-      (if (looking-at "^[ \t]*end$")
-        (progn
-          (save-excursion
-            (forward-line -1)
-            (setq cur-indent (- (current-indentation) default-tab-width)))
-        (if (< cur-indent 0)
-          (setq cur-indent 0)))
-       (save-excursion
-         (while not-indented
-           (forward-line -1)
-             (if (looking-at "^[ \t]*end$")
-               (progn
-                 (setq cur-indent (current-indentation))
-                 (setq not-indented nil))
-                 (if (looking-at "^[ \t]*\\(do\\|after\\|defdelegate\\|defmacro\\|defmodule\\|def\\|defp\\|if\\|case\\|else\\|elsif\\|receive\\|after\\|try\\|catch\\)")
-                   (progn
-                     (setq cur-indent (+ (current-indentation) default-tab-width))
-                     (setq not-indented nil))
-                 (if (bobp)
-                   (setq not-indented nil)))))))
+      (cond ((looking-at "^[ \t]*\\(match:\\|else:\\|elsif\\|after:\\|catch:\\|rescue:\\).*")
+	     (progn 
+	      (save-excursion
+		(forward-line -1)
+		(if (find-last-indent "^[ \t]*\\(case\\|try\\).*")
+		  (setq cur-indent (current-indentation))
+		  (setq not-indented nil)))))
+	     ((looking-at "^[ \t]*end$")
+	      (progn
+	       (save-excursion
+		 (forward-line -1)
+		 (setq cur-indent (- (current-indentation) elixir-basic-offset)))
+	       (if (< cur-indent 0)
+		   (setq cur-indent 0))))
+	    (t (save-excursion
+		 (while not-indented
+		   (forward-line -1)
+		   (if (looking-at "^[ \t]*end$")
+		       (progn
+			 (setq cur-indent (current-indentation))
+			 (setq not-indented nil))
+		     (if (looking-at "^.*\\(do\\|->\\)$")
+			 (progn
+			   (setq cur-indent (+ (current-indentation) elixir-basic-offset))
+			   (setq not-indented nil))
+		       (if (bobp)
+			   (setq not-indented nil))))))))
       (if cur-indent
-        (indent-line-to cur-indent)
+	  (indent-line-to cur-indent)
         (indent-line-to 0)))))
 
 (defun elixir-mode-cygwin-path (expanded-file-name)
