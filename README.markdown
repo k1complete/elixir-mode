@@ -110,6 +110,16 @@ Should Cygwin paths be used on Windows?
 
 The prefix for Cygwin-style paths.
 
+#### elixir-basic-offset (integer)
+##### Default: default-tab-width (8)
+
+indent basic offset
+
+#### elixir-key-label (integer)
+##### Default: 2
+
+for after:, elsif:, else:, match:, catch:, rescue: offset
+
 ### Keymapping
 
 Keymaps can be added to the `elixir-mode-map` variable.
