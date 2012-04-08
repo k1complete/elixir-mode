@@ -115,7 +115,7 @@ The prefix for Cygwin-style paths.
 
 indent basic offset
 
-#### elixir-key-label (integer)
+#### elixir-key-label-offset (integer)
 ##### Default: 2
 
 for after:, elsif:, else:, match:, catch:, rescue: offset

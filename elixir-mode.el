@@ -184,8 +184,8 @@
 	":="
 	"<-")
 "Elixir mode operators.")
-(defvar elixir-basic-offset 4)
-(defvar elixir-key-label 2)
+(defvar elixir-basic-offset default-tab-width)
+(defvar elixir-key-label-offset 2)
 
 (defvar font-lock-operator-face 'font-lock-operator-face)
 (defface font-lock-operator-face
@@ -218,7 +218,7 @@
     '("\\<\\(true\\|false\\|nil\\)\\>" . font-lock-atom-face)                                                                           ; atoms, boolean
 		'("'\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
 "Highlighting for Elixir mode.")
-(defun find-last-indent (s)
+(defun elixir-mode-find-last-indent (s)
   "find last indent for s"
   (let ((f nil))
     (progn (while (not (or (setq f (looking-at s)) (bobp)))
@@ -236,8 +236,8 @@
 	     (progn 
 	      (save-excursion
 		(forward-line -1)
-		(if (find-last-indent "^[ \t]*\\(case\\|try\\).*")
-		  (setq cur-indent (+ (current-indentation) elixir-key-label))
+		(if (elixir-mode-find-last-indent "^[ \t]*\\(case\\|try\\).*")
+		  (setq cur-indent (+ (current-indentation) elixir-key-label-offset))
 		  (setq not-indented nil)))))
 	     ((looking-at "^[ \t]*end$")
 	      (progn
