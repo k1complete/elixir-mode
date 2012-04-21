@@ -93,6 +93,8 @@
   "import"
   "use"
   "if"
+  "loop"
+  "recur"
   "true"
   "false"
   "when"
@@ -236,7 +238,7 @@
 	     (progn 
 	      (save-excursion
 		(forward-line -1)
-		(if (elixir-mode-find-last-indent "^[ \t]*\\(case\\|try\\).*")
+		(if (elixir-mode-find-last-indent "^[ \t]*\\(case\\|loop\\|try\\).*")
 		  (setq cur-indent (+ (current-indentation) elixir-key-label-offset))
 		  (setq not-indented nil)))))
 	     ((looking-at "^[ \t]*end$")
@@ -253,7 +255,7 @@
 		       (progn
 			 (setq cur-indent (current-indentation))
 			 (setq not-indented nil))
-		     (if (looking-at "^.*\\(do\\|->\\)$")
+		     (if (looking-at "^.*[^:]\\(do\\|->\\)$")
 			 (progn
 			   (setq cur-indent (+ (current-indentation) elixir-basic-offset))
 			   (setq not-indented nil))
