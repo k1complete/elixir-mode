@@ -1,6 +1,6 @@
 # elixir-mode -- Emacs major mode for [Elixir](https://github.com/elixir-lang/elixir)
 
-![elixir-mode](https://img.skitch.com/20111112-tyhx1d5wqus29rx644f46ciu5c.png)
+![elixir-mode](http://elixir-lang.org/images/contents/home-code.png)
 
 ## Installation
 
