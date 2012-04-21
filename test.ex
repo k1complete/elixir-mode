@@ -2,7 +2,7 @@
 
 % This is a single line comment.
 
-module Hello                    % module definition
+defmodule Hello                    % module definition
   def hello (person := "world") % method definition, with argument defaults
     "Hello, " + person + "."    % using + as a string method
   end                           % ending indentation
@@ -15,8 +15,8 @@ answer = 42
 
 % Functions
 
-sum = (x, y) -> x + y
-difference = (x, y) do
+sum = fn(x, y) -> x + y end
+difference = fn(x, y) do
   x - y
 end
 

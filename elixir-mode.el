@@ -107,7 +107,6 @@
   "rescue"
   "fn"
   "receive"
-  "" 
   "end")
 "Elixir mode keywords.")
 (defvar elixir-mode-module-names '(
@@ -117,6 +116,7 @@
   "Date"
   "DateTime"
   "EEx"
+  "Enum"
   "ETS"
   "ExUnit"
   "File"
@@ -208,11 +208,11 @@
 (defconst elixir-mode-font-lock-defaults
   (list
     '("%.*$" . font-lock-comment-face)                                                                                                  ; comments
-    '("^\\s *def\\s +\\([^( \t\n]+\\)" . font-lock-function-name-face)                                                                  ; methods
+    '("^\\s *defp?\\s +\\([^( \t\n]+\\)" . font-lock-function-name-face)                                                                  ; methods
     `(,(concat "\\<" (regexp-opt elixir-mode-keyword-names t) "\\>") . font-lock-keyword-face)                                          ; keywords
     `(,(concat "\\<" (regexp-opt elixir-mode-builtin-names t) "\\>") . font-lock-builtin-face)                                          ; builtins
     `(,(concat "\\<" (regexp-opt elixir-mode-module-names t) "\\>") . font-lock-type-face)                                              ; core modules
-		(when elixir-mode-highlight-operators `(,(concat "\\<" (regexp-opt elixir-mode-operator-names t) "\\>") . font-lock-operator-face)) ; operators
+    (when elixir-mode-highlight-operators `(,(concat "\\<" (regexp-opt elixir-mode-operator-names t) "\\>") . font-lock-operator-face)) ; operators
     '("\\(\\w*\\)\\s-*:?=" . font-lock-variable-name-face)                                                                              ; variables
 		'("-[Rr].*[ \n\t]" . font-lock-constant-face)                                                                                       ; regexes
     '("\\<\\(true\\|false\\|nil\\)\\>" . font-lock-atom-face)                                                                           ; atoms, boolean
@@ -317,6 +317,7 @@
 
 (defvar elixir-mode-syntax-table
   (let ((elixir-mode-syntax-table (make-syntax-table)))
+    (modify-syntax-entry ?? "\\" elixir-mode-syntax-table)
     (modify-syntax-entry ?_ "w" elixir-mode-syntax-table)
     (modify-syntax-entry ?% "<" elixir-mode-syntax-table)
     (modify-syntax-entry ?\n ">" elixir-mode-syntax-table)
