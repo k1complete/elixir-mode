@@ -82,6 +82,7 @@
   "for"
   "defmodule"
   "defmacro"
+  "defmacrop"
   "defdelegate"
   "defprotocol"
   "defimpl"
