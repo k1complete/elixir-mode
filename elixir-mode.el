@@ -210,7 +210,7 @@
 
 (defconst elixir-mode-font-lock-defaults
   (list
-    '("%.*$" . font-lock-comment-face)                                                                                                  ; comments
+    '("#.*$" . font-lock-comment-face)                                                                                                  ; comments
     '("^\\s *defp?\\s +\\([^( \t\n]+\\)" . font-lock-function-name-face)                                                                  ; methods
     `(,(concat "\\<" (regexp-opt elixir-mode-keyword-names t) "\\>") . font-lock-keyword-face)                                          ; keywords
     `(,(concat "\\<" (regexp-opt elixir-mode-builtin-names t) "\\>") . font-lock-builtin-face)                                          ; builtins
