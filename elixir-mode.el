@@ -71,8 +71,11 @@
 	:group 'elixir)
 
 (defvar elixir-mode-keyword-names '(
-  "fn"
   "->"
+  "bc"
+  "lc"
+  "in"
+  "fn"
   "quote"
   "unquote"
   "unquote_splicing"
@@ -80,15 +83,17 @@
   "do"
   "after"
   "for"
-  "defmodule"
+  "def"
+  "defdelegate"
+  "defimpl"
   "defmacro"
   "defmacrop"
-  "defdelegate"
-  "defprotocol"
-  "defimpl"
-  "def"
+  "defmodule"
+  "defoverridable"
   "defp"
+  "defprotocol"
   "defrecord"
+  "destructure"
   "refer"
   "require"
   "import"
@@ -100,7 +105,7 @@
   "false"
   "when"
   "case"
-  "match"
+  "cond"
   "throw"
   "then"
   "else"
@@ -146,6 +151,7 @@
   "String"
   "Timer"
   "Tuple"
+  "URI"
   "UnboundMethod")
 "Elixir mode modules.")
 (defvar elixir-mode-builtin-names '(
@@ -160,6 +166,8 @@
 "Elixir mode builtins.")
 (defvar elixir-mode-operator-names '(
   "+"
+        "++"
+	"<>"
 	"-"
 	"/"
 	"*"
@@ -235,11 +243,11 @@
   (if (bobp)
     (indent-line-to 0)
     (let ((not-indented t) cur-indent)
-      (cond ((looking-at "^[ \t]*\\(match:\\|else:\\|elsif\\|after:\\|catch:\\|rescue:\\).*")
+      (cond ((looking-at "^[ \t]*\\(->\\|else\\|elsif\\|after\\|catch\\|rescue\\).*")
 	     (progn 
 	      (save-excursion
 		(forward-line -1)
-		(if (elixir-mode-find-last-indent "^[ \t]*\\(case\\|loop\\|receive\\|try\\).*")
+		(if (elixir-mode-find-last-indent "^[ \t]*\\(case\\|cond\\|loop\\|receive\\|try\\).*")
 		  (setq cur-indent (+ (current-indentation) elixir-key-label-offset))
 		  (setq not-indented nil)))))
 	     ((looking-at "^[ \t]*end$")
@@ -322,8 +330,8 @@
   (let ((elixir-mode-syntax-table (make-syntax-table)))
     (modify-syntax-entry ?? "\\" elixir-mode-syntax-table)
     (modify-syntax-entry ?_ "w" elixir-mode-syntax-table)
-    (modify-syntax-entry ?# "<" elixir-mode-syntax-table)
-    (modify-syntax-entry ?\n ">" elixir-mode-syntax-table)
+;    (modify-syntax-entry ?# "<" elixir-mode-syntax-table)
+;    (modify-syntax-entry ?\n ">" elixir-mode-syntax-table)
     (modify-syntax-entry ?\( "()" elixir-mode-syntax-table)
     (modify-syntax-entry ?\) ")(" elixir-mode-syntax-table)
     (modify-syntax-entry ?\{ "(}" elixir-mode-syntax-table)
