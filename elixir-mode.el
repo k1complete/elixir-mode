@@ -196,7 +196,8 @@
 	"<-")
 "Elixir mode operators.")
 (defvar elixir-basic-offset default-tab-width)
-(defvar elixir-key-label-offset 2)
+(defvar elixir-key-label-offset 0)
+(defvar elixir-match-label-offset 1)
 
 (defvar font-lock-operator-face 'font-lock-operator-face)
 (defface font-lock-operator-face
@@ -243,33 +244,46 @@
   (if (bobp)
     (indent-line-to 0)
     (let ((not-indented t) cur-indent)
-      (cond ((looking-at "^[ \t]*\\(->\\|else\\|elsif\\|after\\|catch\\|rescue\\).*")
+      (cond ((looking-at "^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*")
 	     (progn 
 	      (save-excursion
 		(forward-line -1)
-		(if (elixir-mode-find-last-indent "^[ \t]*\\(case\\|cond\\|loop\\|receive\\|try\\).*")
+		(if (elixir-mode-find-last-indent "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
 		  (setq cur-indent (+ (current-indentation) elixir-key-label-offset))
+		  (setq not-indented nil)))))
+	    ((looking-at "^[ \t]*.*->.*")
+	     (progn 
+	      (save-excursion
+		(forward-line -1)
+		(if (elixir-mode-find-last-indent "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
+		  (setq cur-indent (+ (current-indentation) elixir-match-label-offset))
 		  (setq not-indented nil)))))
 	     ((looking-at "^[ \t]*end$")
 	      (progn
 	       (save-excursion
 		 (forward-line -1)
-		 (setq cur-indent (- (current-indentation) elixir-basic-offset)))
-	       (if (< cur-indent 0)
-		   (setq cur-indent 0))))
+		 (cond ((looking-at "^[ \t]*.*->.*")
+			(setq cur-indent (- (current-indentation) elixir-match-label-offset)))
+		       (t (setq cur-indent (- (current-indentation) elixir-basic-offset))))
+		 (if (< cur-indent 0)
+		     (setq cur-indent 0)))))
 	    (t (save-excursion
 		 (while not-indented
 		   (forward-line -1)
-		   (if (looking-at "^[ \t]*end$")
-		       (progn
-			 (setq cur-indent (current-indentation))
-			 (setq not-indented nil))
-		     (if (looking-at "^.*[^:]\\(do\\|->\\)$")
-			 (progn
-			   (setq cur-indent (+ (current-indentation) elixir-basic-offset))
-			   (setq not-indented nil))
-		       (if (bobp)
-			   (setq not-indented nil))))))))
+		   (cond ((looking-at "^[ \t]*end$")
+			  (progn
+			    (setq cur-indent (current-indentation))
+			    (setq not-indented nil)))
+			 ((looking-at "^.*\\(do\\|fn.*->\\)")
+			  (progn
+			    (setq cur-indent (+ (current-indentation) elixir-basic-offset))
+			    (setq not-indented nil)))
+			 ((looking-at "^.*->")
+			  (progn
+			    (setq cur-indent (+ (- (current-indentation) elixir-match-label-offset) elixir-basic-offset))
+			    (setq not-indented nil)))
+			 ((bobp)
+			  (setq not-indented nil)))))))
       (if cur-indent
 	  (indent-line-to cur-indent)
         (indent-line-to 0)))))
