@@ -251,6 +251,11 @@
 		(if (elixir-mode-find-last-indent "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
 		  (setq cur-indent (+ (current-indentation) elixir-key-label-offset))
 		  (setq not-indented nil)))))
+	    ((looking-at "^[ \t].*\\<fn\\>*.*(.*).*->.*")
+	     (save-excursion
+	       (forward-line -1)
+	       (setq cur-indent (current-indentation))
+	       ))
 	    ((looking-at "^[ \t]*.*->.*")
 	     (progn 
 	      (save-excursion
@@ -268,18 +273,27 @@
 		 (if (< cur-indent 0)
 		     (setq cur-indent 0)))))
 	    (t (save-excursion
+		 (message "other")
 		 (while not-indented
 		   (forward-line -1)
 		   (cond ((looking-at "^[ \t]*end$")
 			  (progn
+			    (message "end")
+			    (setq cur-indent (current-indentation))
+			    (setq not-indented nil)))
+			 ((looking-at "^.*\\(do\\|fn.*->\\).*\\<end\\>")
+			  (progn
+			    (message "aaaa")
 			    (setq cur-indent (current-indentation))
 			    (setq not-indented nil)))
 			 ((looking-at "^.*\\(do\\|fn.*->\\)")
 			  (progn
+			    (message "dofn")
 			    (setq cur-indent (+ (current-indentation) elixir-basic-offset))
 			    (setq not-indented nil)))
 			 ((looking-at "^.*->")
 			  (progn
+			    (message "dofn-->")
 			    (setq cur-indent (+ (- (current-indentation) elixir-match-label-offset) elixir-basic-offset))
 			    (setq not-indented nil)))
 			 ((bobp)
