@@ -240,9 +240,10 @@
     (progn (while (not (or (setq f (looking-at s)) (bobp)))
 	     (forward-line -1))
 	   f)))
+
 (defun elixir-mode-adjust-indent (regexp offset)
   "adjust for regrexp to the offset"
-  (let (())
+  (let ((cur-indent (current-indentation)))
     (progn
       (save-excursion
 	(forward-line -1)
@@ -250,10 +251,37 @@
 	(if (elixir-mode-find-last-indent regexp)
 	    (setq cur-indent (+ (current-indentation) offset))
 	  (if (< cur-indent 0)
-	      (setq cur-indent 0))
-	  (setq not-indented nil)))))
-  )
+	      (setq cur-indent 0)))))))
 
+(defun elixir-mode-other-indent ()
+  (let ((not-indented t) (cur-indent (current-indentation)))
+    (while not-indented
+      (forward-line -1)
+      (cond ((looking-at "^[ \t]*end$")
+	     (progn
+	       (elixir-mode-message "end")
+	       (setq cur-indent (current-indentation))
+	       (setq not-indented nil)))
+	    ((looking-at "^.*\\(do\\|fn.*->\\).*\\<end\\>")
+	     (progn
+	       (elixir-mode-message "aaaa")
+	       (setq cur-indent (current-indentation))
+	       (setq not-indented nil)))
+	    ((looking-at "^.*\\(do\\|fn.*->\\)")
+	     (progn
+	       (elixir-mode-message "dofn")
+	       (setq cur-indent (+ (current-indentation) elixir-basic-offset))
+	       (setq not-indented nil)))
+	    ((looking-at "^.*->")
+	     (progn
+	       (elixir-mode-message "dofn-->")
+	       (setq cur-indent (+ (- (current-indentation) elixir-match-label-offset) elixir-basic-offset))
+	       (setq not-indented nil)))
+	    ((bobp)
+	     (progn
+	       (elixir-mode-message "bobp")
+	       (setq not-indented nil)))))
+  (list cur-indent)))
 
 (defun elixir-mode-indent-line ()
   "Indent current line as Elixir code."
@@ -289,35 +317,10 @@
 		       (t (setq cur-indent (- (current-indentation) elixir-basic-offset))))
 		 (if (< cur-indent 0)
 		     (setq cur-indent 0)))))
-	    (t (save-excursion
-		 (elixir-mode-message "other")
-		 (let ((not-indented t))
-		   (while not-indented
-		     (forward-line -1)
-		     (cond ((looking-at "^[ \t]*end$")
-			    (progn
-			    (elixir-mode-message "end")
-			    (setq cur-indent (current-indentation))
-			    (setq not-indented nil)))
-			   ((looking-at "^.*\\(do\\|fn.*->\\).*\\<end\\>")
-			    (progn
-			      (elixir-mode-message "aaaa")
-			      (setq cur-indent (current-indentation))
-			      (setq not-indented nil)))
-			   ((looking-at "^.*\\(do\\|fn.*->\\)")
-			    (progn
-			      (elixir-mode-message "dofn")
-			      (setq cur-indent (+ (current-indentation) elixir-basic-offset))
-			      (setq not-indented nil)))
-			   ((looking-at "^.*->")
-			    (progn
-			      (elixir-mode-message "dofn-->")
-			      (setq cur-indent (+ (- (current-indentation) elixir-match-label-offset) elixir-basic-offset))
-			      (setq not-indented nil)))
-			   ((bobp)
-			    (progn
-			      (elixir-mode-message "bobp")
-			      (setq not-indented nil)))))))))
+	    (t 
+	     (save-excursion
+	       (elixir-mode-message "other")
+	       (setq cur-indent (car (elixir-mode-other-indent))))))
       (if cur-indent
 	  (indent-line-to cur-indent)
         (indent-line-to 0)))))
@@ -413,7 +416,7 @@
   (interactive)
 	(let ((compiler-output (shell-command-to-string (elixir-mode-command-compile (buffer-file-name)))))
 		(when (string= compiler-output "")
-			(elixir-mode-message "Compiled and saved as %s" (elixir-mode-compiled-file-name)))))
+			(message "Compiled and saved as %s" (elixir-mode-compiled-file-name)))))
 
 (defun elixir-mode-iex ()
   "Elixir mode interactive REPL."
@@ -437,7 +440,7 @@
 (defun elixir-mode-show-version ()
   "Elixir mode print version."
 	(interactive)
-	(elixir-mode-message (concat "elixir-mode v" elixir-mode-version " " elixir-mode-date " by Humza Yaqoob")))
+	(message (concat "elixir-mode v" elixir-mode-version " " elixir-mode-date " by Humza Yaqoob")))
 
 (defvar elixir-mode-syntax-table
   (let ((elixir-mode-syntax-table (make-syntax-table)))
