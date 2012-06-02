@@ -254,6 +254,7 @@
 	      (setq cur-indent 0)))))))
 
 (defun elixir-mode-other-indent ()
+  "return indent level "
   (let ((not-indented t) (cur-indent (current-indentation)))
     (while not-indented
       (forward-line -1)
@@ -291,11 +292,10 @@
     (indent-line-to 0)
     (let (cur-indent)
       (cond ((looking-at "^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*")
-	     (progn 
-	      (save-excursion
-		(forward-line -1)
-		(if (elixir-mode-find-last-indent "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
-		  (setq cur-indent (+ (current-indentation) elixir-key-label-offset))))))
+	     (save-excursion
+	       (forward-line -1)
+	       (if (elixir-mode-find-last-indent "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
+		   (setq cur-indent (+ (current-indentation) elixir-key-label-offset)))))
 	    ((looking-at "^[ \t]*.*\\<fn\\>*.*(.*).*->.*")
 	     (save-excursion
 	       (elixir-mode-message "fn..")
@@ -303,20 +303,18 @@
 	       (setq cur-indent (current-indentation))
 	       ))
 	    ((looking-at "^[ \t]*.*->.*")
-	     (progn 
-	      (save-excursion
-		(forward-line -1)
-		(if (elixir-mode-find-last-indent "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
-		  (setq cur-indent (+ (current-indentation) elixir-match-label-offset))))))
-	     ((looking-at "^[ \t]*end$")
-	      (progn
-	       (save-excursion
-		 (forward-line -1)
-		 (cond ((looking-at "^[ \t]*.*->.*")
-			(setq cur-indent (- (current-indentation) elixir-match-label-offset)))
-		       (t (setq cur-indent (- (current-indentation) elixir-basic-offset))))
-		 (if (< cur-indent 0)
-		     (setq cur-indent 0)))))
+	     (save-excursion
+	       (forward-line -1)
+	       (if (elixir-mode-find-last-indent "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
+		   (setq cur-indent (+ (current-indentation) elixir-match-label-offset)))))
+	    ((looking-at "^[ \t]*end$")
+	     (save-excursion
+	       (forward-line -1)
+	       (cond ((looking-at "^[ \t]*.*->.*")
+		      (setq cur-indent (- (current-indentation) elixir-match-label-offset)))
+		     (t (setq cur-indent (- (current-indentation) elixir-basic-offset))))
+	       (if (< cur-indent 0)
+		   (setq cur-indent 0))))
 	    (t 
 	     (save-excursion
 	       (elixir-mode-message "other")
