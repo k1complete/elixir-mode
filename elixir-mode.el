@@ -288,36 +288,66 @@
 		   )))
       (setq not-indented (car ret))
       (setq cur-indent (cadr ret))
-      (cond (and not-indented (bobp))
+      (if (and not-indented (bobp))
 	    (progn
 	      (elixir-mode-message "bobp")
 	      (setq not-indented nil))))
     (message "indent %d" cur-indent)
     (list cur-indent)))
-
+(defun elixir-mode-cond-indent (m)
+  (let (ret (regexp (car m)) (off1 (cadr m)) (lastexp (caddr m)) (off2))
+    (if (not (setq off2 (cadddr m)))
+	(setq off2 off1))
+    (cond ((looking-at regexp)
+	   (save-excursion
+	     (forward-line -1)
+	     (if (elixir-mode-find-last-indent lastexp)
+		 (setq ret (+ (current-indentation) off1))
+	       (setq ret (+ (current-indentation) off2)))
+	     (if (< ret 0 )
+		 (setq ret 0))
+	     (list nil ret)))
+	  (t 
+	   (list t 0)))))
+	  
 (defun elixir-mode-indent-line ()
   "Indent current line as Elixir code."
   (interactive)
   (beginning-of-line)
   (if (bobp)
     (indent-line-to 0)
-    (let (cur-indent)
-      (cond ((looking-at "^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*")
-	     (save-excursion
-	       (forward-line -1)
-	       (if (elixir-mode-find-last-indent "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
-		   (setq cur-indent (+ (current-indentation) elixir-key-label-offset)))))
-	    ((looking-at "^[ \t]*.*\\<fn\\>*.*(.*).*->.*")
-	     (save-excursion
-	       (elixir-mode-message "fn..")
-	       (forward-line -1)
-	       (setq cur-indent (current-indentation))
-	       ))
-	    ((looking-at "^[ \t]*.*->.*")
-	     (save-excursion
-	       (forward-line -1)
-	       (if (elixir-mode-find-last-indent "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
-		   (setq cur-indent (+ (current-indentation) elixir-match-label-offset)))))
+    (let (cur-indent ret) 
+      (setq ret (elixir-mode-takewhile
+		 'elixir-mode-cond-indent 
+		 `(("^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*" 
+		    ,elixir-key-label-offset 
+		    "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
+		   ("^[ \t]*.*\\<fn\\>*.*(.*).*->.*"
+		    0
+		    ".")
+		   ("^[ \t]*.*->.*"
+		    ,elixir-match-label-offset
+		    "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
+		   )))
+      (cond ((not (car ret))
+	     (setq cur-indent (cadr ret)))
+	 ;;;((looking-at "^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*")
+	 ;;;     (save-excursion
+	 ;;;      (forward-line -1)
+	 ;;;      (if (elixir-mode-find-last-indent "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
+	 ;;;      (setq cur-indent (+ (current-indentation) elixir-key-label-offset)))))
+;;;	    ((looking-at "^[ \t]*.*\\<fn\\>*.*(.*).*->.*")
+;;;	     (save-excursion
+;;;	       (elixir-mode-message "fn..")
+;;;	       (forward-line -1)
+;;;	       (if (elixir-mode-find-last-indent ".")
+;;;		   (setq cur-indent (current-indentation))
+;;;	       )))
+;;;	    ((looking-at "^[ \t]*.*->.*")
+;;;	     (save-excursion
+;;;	       (forward-line -1)
+;;;	       (if (elixir-mode-find-last-indent "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
+;;;		   (setq cur-indent (+ (current-indentation) elixir-match-label-offset)))))
 	    ((looking-at "^[ \t]*end$")
 	     (save-excursion
 	       (forward-line -1)
