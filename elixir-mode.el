@@ -70,9 +70,9 @@
 	:type 'string
 	:group 'elixir)
 (defvar elixir-mode-debug-flag t)
-(defun elixir-mode-message (s)
+(defun elixir-mode-message (s &rest objects)
   (if elixir-mode-debug-flag
-      (message s)))
+      (message s objects)))
 
 (defvar elixir-mode-keyword-names '(
   "->"
@@ -199,7 +199,7 @@
 	":="
 	"<-")
 "Elixir mode operators.")
-(defvar elixir-basic-offset default-tab-width)
+(defvar elixir-basic-offset 2)
 (defvar elixir-key-label-offset 0)
 (defvar elixir-match-label-offset 1)
 
@@ -253,36 +253,47 @@
 	  (if (< cur-indent 0)
 	      (setq cur-indent 0)))))))
 
+(defun elixir-mode-takewhile (f l)
+  (let ((not-done t) (n l) (ret))
+    (while (and n not-done)
+      (setq ret (funcall f (car n)))
+      (setq n (cdr n))
+      (setq not-done (car ret)))
+    ret))
+
+(defun elixir-mode-calc-offset (m)
+  (let ((cur-indent) (regexp (car m)) (offset (cadr m)))
+    (cond ((looking-at regexp)
+	   (progn 
+	     (elixir-mode-message regexp)
+	     (setq cur-indent (+ (current-indentation) offset))
+	     (setq not-indented nil)))
+	  (t
+	   (progn 
+	     (setq cur-indent (current-indentation))
+	     (setq not-indented t))))
+    (list not-indented cur-indent)))
+
 (defun elixir-mode-other-indent ()
   "return indent level "
-  (let ((not-indented t) (cur-indent (current-indentation)))
+  (let ((not-indented t) (cur-indent (current-indentation)) (ret))
     (while not-indented
       (forward-line -1)
-      (cond ((looking-at "^[ \t]*end$")
-	     (progn
-	       (elixir-mode-message "end")
-	       (setq cur-indent (current-indentation))
-	       (setq not-indented nil)))
-	    ((looking-at "^.*\\(do\\|fn.*->\\).*\\<end\\>")
-	     (progn
-	       (elixir-mode-message "aaaa")
-	       (setq cur-indent (current-indentation))
-	       (setq not-indented nil)))
-	    ((looking-at "^.*\\(do\\|fn.*->\\)")
-	     (progn
-	       (elixir-mode-message "dofn")
-	       (setq cur-indent (+ (current-indentation) elixir-basic-offset))
-	       (setq not-indented nil)))
-	    ((looking-at "^.*->")
-	     (progn
-	       (elixir-mode-message "dofn-->")
-	       (setq cur-indent (+ (- (current-indentation) elixir-match-label-offset) elixir-basic-offset))
-	       (setq not-indented nil)))
-	    ((bobp)
-	     (progn
-	       (elixir-mode-message "bobp")
-	       (setq not-indented nil)))))
-  (list cur-indent)))
+      (setq ret (elixir-mode-takewhile 
+		 'elixir-mode-calc-offset
+		 `(("^[ \t]*end$" 0)
+		   ("^.*\\(do\\|fn.*->\\).*\\<end\\>" 0)
+		   ("^.*\\(do\\|fn.*->\\)" ,elixir-basic-offset)
+		   ("^.*->" ,(- elixir-basic-offset elixir-match-label-offset))
+		   )))
+      (setq not-indented (car ret))
+      (setq cur-indent (cadr ret))
+      (cond (and not-indented (bobp))
+	    (progn
+	      (elixir-mode-message "bobp")
+	      (setq not-indented nil))))
+    (message "indent %d" cur-indent)
+    (list cur-indent)))
 
 (defun elixir-mode-indent-line ()
   "Indent current line as Elixir code."
