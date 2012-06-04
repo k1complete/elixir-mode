@@ -331,23 +331,6 @@
 		   )))
       (cond ((not (car ret))
 	     (setq cur-indent (cadr ret)))
-	 ;;;((looking-at "^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*")
-	 ;;;     (save-excursion
-	 ;;;      (forward-line -1)
-	 ;;;      (if (elixir-mode-find-last-indent "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
-	 ;;;      (setq cur-indent (+ (current-indentation) elixir-key-label-offset)))))
-;;;	    ((looking-at "^[ \t]*.*\\<fn\\>*.*(.*).*->.*")
-;;;	     (save-excursion
-;;;	       (elixir-mode-message "fn..")
-;;;	       (forward-line -1)
-;;;	       (if (elixir-mode-find-last-indent ".")
-;;;		   (setq cur-indent (current-indentation))
-;;;	       )))
-;;;	    ((looking-at "^[ \t]*.*->.*")
-;;;	     (save-excursion
-;;;	       (forward-line -1)
-;;;	       (if (elixir-mode-find-last-indent "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
-;;;		   (setq cur-indent (+ (current-indentation) elixir-match-label-offset)))))
 	    ((looking-at "^[ \t]*end$")
 	     (save-excursion
 	       (forward-line -1)
