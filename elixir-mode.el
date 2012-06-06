@@ -294,9 +294,13 @@
 	      (setq not-indented nil))))
     (message "indent %d" cur-indent)
     (list cur-indent)))
+(caddr m) == (car (cdr (cdr m)))
 (defun elixir-mode-cond-indent (m)
-  (let (ret (regexp (car m)) (off1 (cadr m)) (lastexp (caddr m)) (off2))
-    (if (not (setq off2 (cadddr m)))
+  (let (ret (regexp (car m)) 
+	    (off1 (cadr m)) 
+	    (lastexp (car (cdr (cdr m)))) 
+	    (off2 (car (cdr (cdr (cdr m))))))
+    (if (not off2)
 	(setq off2 off1))
     (cond ((looking-at regexp)
 	   (save-excursion
@@ -334,9 +338,11 @@
 	    ((looking-at "^[ \t]*end$")
 	     (save-excursion
 	       (forward-line -1)
-	       (cond ((looking-at "^[ \t]*.*->.*")
-		      (setq cur-indent (- (current-indentation) elixir-match-label-offset)))
-		     (t (setq cur-indent (- (current-indentation) elixir-basic-offset))))
+	       (setq cur-indent (- (current-indentation) 
+				   (cond ((looking-at "^[ \t]*.*->.*")
+					  elixir-match-label-offset)
+					 (t
+					  elixir-basic-offset))))
 	       (if (< cur-indent 0)
 		   (setq cur-indent 0))))
 	    (t 
