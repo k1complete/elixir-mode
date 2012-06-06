@@ -294,7 +294,7 @@
 	      (setq not-indented nil))))
     (message "indent %d" cur-indent)
     (list cur-indent)))
-(caddr m) == (car (cdr (cdr m)))
+
 (defun elixir-mode-cond-indent (m)
   (let (ret (regexp (car m)) 
 	    (off1 (cadr m)) 
