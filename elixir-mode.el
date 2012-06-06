@@ -241,18 +241,6 @@
 	     (forward-line -1))
 	   f)))
 
-(defun elixir-mode-adjust-indent (regexp offset)
-  "adjust for regrexp to the offset"
-  (let ((cur-indent (current-indentation)))
-    (progn
-      (save-excursion
-	(forward-line -1)
-	(elixir-mode-message regexp)
-	(if (elixir-mode-find-last-indent regexp)
-	    (setq cur-indent (+ (current-indentation) offset))
-	  (if (< cur-indent 0)
-	      (setq cur-indent 0)))))))
-
 (defun elixir-mode-takewhile (f l)
   (let ((not-done t) (n l) (ret))
     (while (and n not-done)
