@@ -236,16 +236,19 @@
 "Highlighting for Elixir mode.")
 (defun elixir-mode-find-last-indent (s)
   "find last indent for s"
-  (let ((f nil) (level 1) 
+  (let ((f t) (level 1)
 	(endmark "^.*\\<end\\>.*$") 
 	(headmark "^.*+\\<do\\>\\|\\<fn\\s(.*)\\s*->.*$"))
     (progn 
-      (while (and (> level 0) (not (bobp)))
+      (while (and (> level 0) (and (not (bobp)) f))
 	(forward-line -1)
 	(cond ((looking-at endmark)
 	       (setq level (+ level 1)))
 	      ((looking-at headmark)
-	       (setq level (- level 1)))))
+	       (setq level (- level 1))))
+	(cond ((and (= level 1) (looking-at s))
+	       (elixir-mode-message s)
+	       (setq f nil))))
       (current-indentation))))
 
 (defun elixir-mode-find-last-indent-old (s)
@@ -304,8 +307,10 @@
 	    (off2 (car (cdr (cdr (cdr m))))))
     (if (not off2)
 	(setq off2 off1))
+    (elixir-mode-message regexp)
     (cond ((looking-at regexp)
 	   (save-excursion
+	     (elixir-mode-message "match")
 	     (if (elixir-mode-find-last-indent lastexp)
 		 (setq ret (+ (current-indentation) off1))
 	       (setq ret (+ (current-indentation) off2)))
@@ -313,6 +318,7 @@
 		 (setq ret 0))
 	     (list nil ret)))
 	  (t 
+	   (elixir-mode-message "unmatch")
 	   (list t 0)))))
 	  
 (defun elixir-mode-indent-line ()
@@ -327,9 +333,10 @@
 		 `(("^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*" 
 		    ,elixir-key-label-offset 
 		    "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
-		   ("^[ \t]*.*\\<fn\\>\\s*(.*).*->.*"
+		   ("^[ \t]*.*\\<fn\\>.*->.*"
 		    0
-		    ".")
+		    "."
+		    0)
 		   ("^[ \t]*.*->.*"
 		    ,elixir-match-label-offset
 		    "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
