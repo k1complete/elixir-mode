@@ -201,7 +201,7 @@
 "Elixir mode operators.")
 (defvar elixir-basic-offset 2)
 (defvar elixir-key-label-offset 0)
-(defvar elixir-match-label-offset 1)
+(defvar elixir-match-label-offset 0)
 
 (defvar font-lock-operator-face 'font-lock-operator-face)
 (defface font-lock-operator-face
@@ -235,6 +235,20 @@
 		'("'\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
 "Highlighting for Elixir mode.")
 (defun elixir-mode-find-last-indent (s)
+  "find last indent for s"
+  (let ((f nil) (level 1) 
+	(endmark "^.*\\<end\\>.*$") 
+	(headmark "^.*+\\<do\\>\\|\\<fn\\s(.*)\\s*->.*$"))
+    (progn 
+      (while (and (> level 0) (not (bobp)))
+	(forward-line -1)
+	(cond ((looking-at endmark)
+	       (setq level (+ level 1)))
+	      ((looking-at headmark)
+	       (setq level (- level 1)))))
+      (current-indentation))))
+
+(defun elixir-mode-find-last-indent-old (s)
   "find last indent for s"
   (let ((f nil))
     (progn (while (not (or (setq f (looking-at s)) (bobp)))
@@ -292,7 +306,6 @@
 	(setq off2 off1))
     (cond ((looking-at regexp)
 	   (save-excursion
-	     (forward-line -1)
 	     (if (elixir-mode-find-last-indent lastexp)
 		 (setq ret (+ (current-indentation) off1))
 	       (setq ret (+ (current-indentation) off2)))
@@ -314,7 +327,7 @@
 		 `(("^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*" 
 		    ,elixir-key-label-offset 
 		    "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
-		   ("^[ \t]*.*\\<fn\\>*.*(.*).*->.*"
+		   ("^[ \t]*.*\\<fn\\>\\s*(.*).*->.*"
 		    0
 		    ".")
 		   ("^[ \t]*.*->.*"
