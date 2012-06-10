@@ -69,7 +69,7 @@
 	"Elixir mode Cygwin prefix."
 	:type 'string
 	:group 'elixir)
-(defvar elixir-mode-debug-flag t)
+(defvar elixir-mode-debug-flag nil)
 (defun elixir-mode-message (s &rest objects)
   (if elixir-mode-debug-flag
       (message s objects)))
