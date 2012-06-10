@@ -201,7 +201,7 @@
 "Elixir mode operators.")
 (defvar elixir-basic-offset 2)
 (defvar elixir-key-label-offset 0)
-(defvar elixir-match-label-offset 0)
+(defvar elixir-match-label-offset 2)
 
 (defvar font-lock-operator-face 'font-lock-operator-face)
 (defface font-lock-operator-face
@@ -238,16 +238,28 @@
   "find last indent for s"
   (let ((f t) (level 1)
 	(endmark "^.*\\<end\\>.*$") 
-	(headmark "^.*+\\<do\\>\\|\\<fn\\s(.*)\\s*->.*$"))
+	(headmark "^.*+\\(\\<do\\>\\|\\<fn\\s(.*)\\s*->\\).*$"))
     (progn 
+      (forward-line -1)
       (while (and (> level 0) (and (not (bobp)) f))
-	(forward-line -1)
 	(cond ((looking-at endmark)
-	       (setq level (+ level 1)))
+	       (setq level (+ level 1))
+	       (elixir-mode-message "level ++")
+	       (elixir-mode-message (thing-at-point 'line)))
 	      ((looking-at headmark)
-	       (setq level (- level 1))))
+	       (setq level (- level 1))
+	       (elixir-mode-message "level --")
+	       (elixir-mode-message (thing-at-point 'line))))
+	(forward-line -1)
 	(cond ((and (= level 1) (looking-at s))
+	       (elixir-mode-message "level 1")
 	       (elixir-mode-message s)
+	       (setq f nil))
+	      ((= level 0)
+	       (forward-line 1)
+	       (elixir-mode-message "level 0 !")
+	       (elixir-mode-message s)
+	       (elixir-mode-message (thing-at-point 'line))
 	       (setq f nil))))
       (current-indentation))))
 
@@ -290,6 +302,8 @@
 		   ("^.*\\(do\\|fn.*->\\).*\\<end\\>" 0)
 		   ("^.*\\(do\\|fn.*->\\)" ,elixir-basic-offset)
 		   ("^.*->" ,(- elixir-basic-offset elixir-match-label-offset))
+		   ("^[ \t]*else" ,(- elixir-basic-offset elixir-match-label-offset))
+		   ("^[ \t]*elsif" ,(- elixir-basic-offset elixir-match-label-offset))
 		   )))
       (setq not-indented (car ret))
       (setq cur-indent (cadr ret))
@@ -303,25 +317,107 @@
 (defun elixir-mode-cond-indent (m)
   (let (ret (regexp (car m)) 
 	    (off1 (cadr m)) 
-	    (lastexp (car (cdr (cdr m)))) 
-	    (off2 (car (cdr (cdr (cdr m))))))
+	    (lastexp (car (cddr m)))
+	    (off2 (car (cdddr m))))
     (if (not off2)
 	(setq off2 off1))
     (elixir-mode-message regexp)
     (cond ((looking-at regexp)
 	   (save-excursion
 	     (elixir-mode-message "match")
-	     (if (elixir-mode-find-last-indent lastexp)
-		 (setq ret (+ (current-indentation) off1))
-	       (setq ret (+ (current-indentation) off2)))
+	     (if (and lastexp (elixir-mode-find-last-indent lastexp))
+		 (progn
+		   (elixir-mode-message "bubu")
+		   (setq ret (+ (current-indentation) off1)))
+	       (progn
+		 (forward-line -1)
+		 (setq ret (+ (current-indentation) off2))
+		 ))
 	     (if (< ret 0 )
 		 (setq ret 0))
+	     (elixir-mode-message (thing-at-point 'line))
 	     (list nil ret)))
 	  (t 
 	   (elixir-mode-message "unmatch")
 	   (list t 0)))))
-	  
+
+(defvar elixir-mode-endmark "^[ \t]*\\<end\\>")
+(defvar elixir-mode-beginmark ".*\\(\\<fn.*(.*).*->\\|\\<do\\>\\)$")
+(defvar elixir-mode-mbeginmark ".*\\<\\(fn\\|\\(cond\\|loop\\|case\\|receive\\).*\\)[ \t\+do$")
+(defvar elixir-mode-onelinermark ".*->.*\\<end\\>$")
+(defvar elixir-mode-keymark "^[ \t]*\\(else\\|after\\)$")
+(defvar elixir-mode-labelmark ".*->.*")
+
+(defun elixir-mode-previous-line-last-offset ()
+  (let ((level 1))
+    (progn
+      (while (and (> level 0) (not (bobp)))
+	(forward-line -1)
+	(cond ((looking-at elixir-mode-endmark)
+	       (setq level (+ level 1)))
+	      ((looking-at elixir-mode-beginmark)
+	       (setq level (- level 1)))))
+      (cond ((bobp)
+	     0)
+	    (t
+	     (+ (current-indentation) elixir-basic-offset))))))
+
+(defun elixir-mode-find-type ()
+  (progn
+    (message "find-type")
+    (message (thing-at-point 'line))
+    (cond ((looking-at elixir-mode-endmark)
+	   'end)
+	  ((looking-at elixir-mode-beginmark)
+	   'begin)
+	  ((looking-at elixir-mode-onelinermark)
+	   'normal)
+	  ((looking-at elixir-mode-labelmark)
+	   (message "find-label")
+	   'label)
+	  ((looking-at elixir-mode-keymark)
+	   (message "find-key")
+	   'key)
+	  (t
+	   'normal))))
+(defun elixir-mode-previous-line-offset ()
+  (save-excursion
+    (let ((type))
+      (forward-line -1)
+      (setq type (elixir-mode-find-type))
+      (cond ((eq type 'begin)
+	     (+ (current-indentation) elixir-basic-offset))
+	    ((eq type 'label)
+	     (+ (current-indentation) elixir-basic-offset))
+	    ((eq type 'key)
+	     (+ (- (current-indentation) elixir-keylabel-offset)
+		   elixir-basic-offset))
+	    (t
+	     (current-indentation))))))
+  
 (defun elixir-mode-indent-line ()
+  "Indent current line as Elixir code."
+  (interactive)
+  (beginning-of-line)
+  (let ((ttype) (poffset) (noffset))
+    (save-excursion
+      (setq ttype (elixir-mode-find-type))
+      (setq noffset (cond ((eq ttype 'label)
+			   (+ (- (elixir-mode-previous-line-last-offset)
+				  elixir-basic-offset)
+			      elixir-match-label-offset))
+			  ((eq ttype 'key)
+			   (+ (- (elixir-mode-previous-line-last-offset)
+				 elixir-basic-offset)
+			      elixir-key-label-offset))
+			  ((eq ttype 'end)
+			   (- (elixir-mode-previous-line-last-offset)
+			      elixir-basic-offset))
+			  ((or (eq ttype 'normal) (eq ttype 'begin))
+			   (elixir-mode-previous-line-offset)))))
+    (indent-line-to noffset)))
+
+(defun elixir-mode-indent-line-org ()
   "Indent current line as Elixir code."
   (interactive)
   (beginning-of-line)
@@ -330,13 +426,17 @@
     (let (cur-indent ret) 
       (setq ret (elixir-mode-takewhile
 		 'elixir-mode-cond-indent 
-		 `(("^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*" 
-		    ,elixir-key-label-offset 
-		    "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
-		   ("^[ \t]*.*\\<fn\\>.*->.*"
+		 `(("^[ \t]*\\(else\\|elsif\\|after\\).*"
+		    ,elixir-key-label-offset
+		    "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
+		   ("^[ \t]*.*\\<fn\\>.*->.*end$"
 		    0
-		    "."
-		    0)
+		    "^[ \t]*\\(\\<do\\>\\|\\<fn\\s.*->\\)\\s*$"
+		    ,elixir-basic-offset)
+		   ("^[ \t]*.*\\<fn\\>.*->.*"
+		    ,elixir-basic-offset
+		    nil
+		    ,0)
 		   ("^[ \t]*.*->.*"
 		    ,elixir-match-label-offset
 		    "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
