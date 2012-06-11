@@ -124,38 +124,35 @@
   "end")
 "Elixir mode keywords.")
 (defvar elixir-mode-module-names '(
-  "Atom"
-  "BitString"
+  "Behavior"
+  "Binary"
+  "Bitwise"
+  "Builtin"
+  "Elixir"
   "Code"
-  "Date"
-  "DateTime"
   "EEx"
   "Enum"
-  "ETS"
   "ExUnit"
+  "Exception"
   "File"
-  "Float"
+  "GenServer"
   "Function"
   "GenServer"
   "GenTCP"
-  "IEX"
-  "Integer"
+  "HashDict"
   "IO"
+  "Keyword"
   "List"
   "Math"
-  "Method"
   "Module"
-  "Numeric"
-  "OrderedDict"
-  "OS"
+  "Node"
+  "OptrionParser"
+  "OrdDict"
   "Port"
   "Process"
   "Record"
-  "Reference"
   "Regexp"
-  "Set"
-  "String"
-  "Timer"
+  "System"
   "Tuple"
   "URI"
   "UnboundMethod")
@@ -232,9 +229,9 @@
     `(,(concat "\\<" (regexp-opt elixir-mode-module-names t) "\\>") . font-lock-type-face)                                              ; core modules
     (when elixir-mode-highlight-operators `(,(concat "\\<" (regexp-opt elixir-mode-operator-names t) "\\>") . font-lock-operator-face)) ; operators
     '("\\(\\w*\\)\\s-*:?=" . font-lock-variable-name-face)                                                                              ; variables
-		'("-[Rr].*[ \n\t]" . font-lock-constant-face)                                                                                       ; regexes
+    '("-[Rr].*[ \n\t]" . font-lock-constant-face)                                                                                       ; regexes
     '("\\<\\(true\\|false\\|nil\\)\\>" . font-lock-atom-face)                                                                           ; atoms, boolean
-		'("'\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
+    '("'\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
 "Highlighting for Elixir mode.")
 
 (defun elixir-mode-takewhile (f l)
