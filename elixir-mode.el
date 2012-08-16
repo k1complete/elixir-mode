@@ -105,8 +105,6 @@
   "import"
   "use"
   "if"
-  "loop"
-  "recur"
   "true"
   "false"
   "when"
@@ -245,7 +243,7 @@
 
 (defvar elixir-mode-endmark "^[ \t]*\\<end\\>")
 (defvar elixir-mode-beginmark ".*\\(\\<fn.*(.*).*->\\|\\<do\\>\\)$")
-(defvar elixir-mode-mbeginmark ".*\\<\\(fn\\|\\(cond\\|loop\\|case\\|receive\\).*\\)[ \t\+do$")
+(defvar elixir-mode-mbeginmark ".*\\<\\(fn\\|\\(cond\\|case\\|receive\\).*\\)[ \t\+do$")
 (defvar elixir-mode-onelinermark ".*->.*\\<end\\>$")
 (defvar elixir-mode-keymark "^[ \t]*\\(else\\|after\\)$")
 (defvar elixir-mode-labelmark ".*->.*")
