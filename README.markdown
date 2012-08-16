@@ -45,7 +45,7 @@ Applies compile-on-save minor mode.
 
 #### elixir-mode-iex
 
-Launch `IEX` inside Emacs.
+Launch `IEX` inside Emacs.(buggy...)
 
 #### elixir-mode-opengithub
 
@@ -65,7 +65,7 @@ Print version info for elixir-mode.
 
 #### elixir-mode-indent-line
 
-Indent the current line. (Buggy right now.)
+Indent the current line. 
 
 ### Hooks
 
