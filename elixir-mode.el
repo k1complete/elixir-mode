@@ -32,9 +32,9 @@
 (require 'comint)   ; for interactive REPL
 (require 'easymenu) ; for menubar features
 
-(defconst elixir-mode-version "1.0.0"
+(defconst elixir-mode-version "2.0.0"
 	"Elixir mode version number.")
-(defconst elixir-mode-date "2011-11-12"
+(defconst elixir-mode-date "2012-08-16"
 	"Elixir mode version date.")
 
 (defvar elixir-mode-hook nil)
@@ -69,7 +69,7 @@
 	"Elixir mode Cygwin prefix."
 	:type 'string
 	:group 'elixir)
-(defvar elixir-mode-debug-flag t)
+(defvar elixir-mode-debug-flag nil)
 (defun elixir-mode-message (s &rest objects)
   (if elixir-mode-debug-flag
       (message s objects)))
@@ -79,7 +79,8 @@
   "bc"
   "lc"
   "in"
-  "fn"
+  "inbits"
+  "inlist"
   "quote"
   "unquote"
   "unquote_splicing"
@@ -98,13 +99,12 @@
   "defprotocol"
   "defrecord"
   "destructure"
+  "alias"
   "refer"
   "require"
   "import"
   "use"
   "if"
-  "loop"
-  "recur"
   "true"
   "false"
   "when"
@@ -122,38 +122,35 @@
   "end")
 "Elixir mode keywords.")
 (defvar elixir-mode-module-names '(
-  "Atom"
-  "BitString"
+  "Behavior"
+  "Binary"
+  "Bitwise"
+  "Builtin"
+  "Elixir"
   "Code"
-  "Date"
-  "DateTime"
   "EEx"
   "Enum"
-  "ETS"
   "ExUnit"
+  "Exception"
   "File"
-  "Float"
+  "GenServer"
   "Function"
   "GenServer"
   "GenTCP"
-  "IEX"
-  "Integer"
+  "HashDict"
   "IO"
+  "Keyword"
   "List"
   "Math"
-  "Method"
   "Module"
-  "Numeric"
-  "OrderedDict"
-  "OS"
+  "Node"
+  "OptrionParser"
+  "OrdDict"
   "Port"
   "Process"
   "Record"
-  "Reference"
   "Regexp"
-  "Set"
-  "String"
-  "Timer"
+  "System"
   "Tuple"
   "URI"
   "UnboundMethod")
@@ -164,7 +161,6 @@
   "__FUNCTION__"
   "__LINE__"
   "__FILE__"
-  "__MAIN__"
   "__LOCAL__"
 )
 "Elixir mode builtins.")
@@ -201,7 +197,7 @@
 "Elixir mode operators.")
 (defvar elixir-basic-offset 2)
 (defvar elixir-key-label-offset 0)
-(defvar elixir-match-label-offset 1)
+(defvar elixir-match-label-offset 2)
 
 (defvar font-lock-operator-face 'font-lock-operator-face)
 (defface font-lock-operator-face
@@ -230,28 +226,10 @@
     `(,(concat "\\<" (regexp-opt elixir-mode-module-names t) "\\>") . font-lock-type-face)                                              ; core modules
     (when elixir-mode-highlight-operators `(,(concat "\\<" (regexp-opt elixir-mode-operator-names t) "\\>") . font-lock-operator-face)) ; operators
     '("\\(\\w*\\)\\s-*:?=" . font-lock-variable-name-face)                                                                              ; variables
-		'("-[Rr].*[ \n\t]" . font-lock-constant-face)                                                                                       ; regexes
+    '("-[Rr].*[ \n\t]" . font-lock-constant-face)                                                                                       ; regexes
     '("\\<\\(true\\|false\\|nil\\)\\>" . font-lock-atom-face)                                                                           ; atoms, boolean
-		'("'\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
+    '("'\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
 "Highlighting for Elixir mode.")
-(defun elixir-mode-find-last-indent (s)
-  "find last indent for s"
-  (let ((f nil))
-    (progn (while (not (or (setq f (looking-at s)) (bobp)))
-	     (forward-line -1))
-	   f)))
-
-(defun elixir-mode-adjust-indent (regexp offset)
-  "adjust for regrexp to the offset"
-  (let ((cur-indent (current-indentation)))
-    (progn
-      (save-excursion
-	(forward-line -1)
-	(elixir-mode-message regexp)
-	(if (elixir-mode-find-last-indent regexp)
-	    (setq cur-indent (+ (current-indentation) offset))
-	  (if (< cur-indent 0)
-	      (setq cur-indent 0)))))))
 
 (defun elixir-mode-takewhile (f l)
   (let ((not-done t) (n l) (ret))
@@ -261,97 +239,84 @@
       (setq not-done (car ret)))
     ret))
 
-(defun elixir-mode-calc-offset (m)
-  (let ((cur-indent) (regexp (car m)) (offset (cadr m)))
-    (cond ((looking-at regexp)
-	   (progn 
-	     (elixir-mode-message regexp)
-	     (setq cur-indent (+ (current-indentation) offset))
-	     (setq not-indented nil)))
+
+(defvar elixir-mode-endmark "^[ \t]*\\<end\\>")
+(defvar elixir-mode-beginmark ".*\\(\\<fn.*(.*).*->\\|\\<do\\>\\)$")
+(defvar elixir-mode-mbeginmark ".*\\<\\(fn\\|\\(cond\\|case\\|receive\\).*\\)[ \t\+do$")
+(defvar elixir-mode-onelinermark ".*->.*\\<end\\>$")
+(defvar elixir-mode-keymark "^[ \t]*\\(else\\|after\\)$")
+(defvar elixir-mode-labelmark ".*->.*")
+
+(defun elixir-mode-previous-line-last-offset ()
+  "find last block + basic-offset"
+  (let ((level 1))
+    (progn
+      (while (and (> level 0) (not (bobp)))
+	(forward-line -1)
+	(cond ((looking-at elixir-mode-endmark)
+	       (setq level (+ level 1)))
+	      ((looking-at elixir-mode-beginmark)
+	       (setq level (- level 1)))))
+      (cond ((bobp)
+	     0)
+	    (t
+	     (+ (current-indentation) elixir-basic-offset))))))
+
+(defun elixir-mode-find-type ()
+  "find keyword type in (begin|end|normal|label|key)"
+  (progn
+    (elixir-mode-message "find-type")
+    (elixir-mode-message (thing-at-point 'line))
+    (cond ((looking-at elixir-mode-endmark)
+	   'end)
+	  ((looking-at elixir-mode-beginmark)
+	   'begin)
+	  ((looking-at elixir-mode-onelinermark)
+	   'normal)
+	  ((looking-at elixir-mode-labelmark)
+	   'label)
+	  ((looking-at elixir-mode-keymark)
+	   'key)
 	  (t
-	   (progn 
-	     (setq cur-indent (current-indentation))
-	     (setq not-indented t))))
-    (list not-indented cur-indent)))
+	   'normal))))
 
-(defun elixir-mode-other-indent ()
-  "return indent level "
-  (let ((not-indented t) (cur-indent (current-indentation)) (ret))
-    (while not-indented
+(defun elixir-mode-previous-line-offset ()
+  "calc offset by previous line type in (begin|label|key|other)"
+  (save-excursion
+    (let ((type))
       (forward-line -1)
-      (setq ret (elixir-mode-takewhile 
-		 'elixir-mode-calc-offset
-		 `(("^[ \t]*end$" 0)
-		   ("^.*\\(do\\|fn.*->\\).*\\<end\\>" 0)
-		   ("^.*\\(do\\|fn.*->\\)" ,elixir-basic-offset)
-		   ("^.*->" ,(- elixir-basic-offset elixir-match-label-offset))
-		   )))
-      (setq not-indented (car ret))
-      (setq cur-indent (cadr ret))
-      (if (and not-indented (bobp))
-	    (progn
-	      (elixir-mode-message "bobp")
-	      (setq not-indented nil))))
-    (message "indent %d" cur-indent)
-    (list cur-indent)))
-
-(defun elixir-mode-cond-indent (m)
-  (let (ret (regexp (car m)) 
-	    (off1 (cadr m)) 
-	    (lastexp (car (cdr (cdr m)))) 
-	    (off2 (car (cdr (cdr (cdr m))))))
-    (if (not off2)
-	(setq off2 off1))
-    (cond ((looking-at regexp)
-	   (save-excursion
-	     (forward-line -1)
-	     (if (elixir-mode-find-last-indent lastexp)
-		 (setq ret (+ (current-indentation) off1))
-	       (setq ret (+ (current-indentation) off2)))
-	     (if (< ret 0 )
-		 (setq ret 0))
-	     (list nil ret)))
-	  (t 
-	   (list t 0)))))
-	  
+      (setq type (elixir-mode-find-type))
+      (cond ((eq type 'begin)
+	     (+ (current-indentation) elixir-basic-offset))
+	    ((eq type 'label)
+	     (+ (current-indentation) elixir-basic-offset))
+	    ((eq type 'key)
+	     (+ (- (current-indentation) elixir-key-label-offset)
+		   elixir-basic-offset))
+	    (t
+	     (current-indentation))))))
+  
 (defun elixir-mode-indent-line ()
   "Indent current line as Elixir code."
   (interactive)
   (beginning-of-line)
-  (if (bobp)
-    (indent-line-to 0)
-    (let (cur-indent ret) 
-      (setq ret (elixir-mode-takewhile
-		 'elixir-mode-cond-indent 
-		 `(("^[ \t]*\\(else\\|elsif\\|after\\|catch\\|rescue\\).*" 
-		    ,elixir-key-label-offset 
-		    "^[ \t]*\\(if\\|case\\|cond\\|loop\\|receive\\).*")
-		   ("^[ \t]*.*\\<fn\\>*.*(.*).*->.*"
-		    0
-		    ".")
-		   ("^[ \t]*.*->.*"
-		    ,elixir-match-label-offset
-		    "^[ \t]*\\(cond\\|case\\|loop\\|receive\\|catch\\|rescue\\).*")
-		   )))
-      (cond ((not (car ret))
-	     (setq cur-indent (cadr ret)))
-	    ((looking-at "^[ \t]*end$")
-	     (save-excursion
-	       (forward-line -1)
-	       (setq cur-indent (- (current-indentation) 
-				   (cond ((looking-at "^[ \t]*.*->.*")
-					  elixir-match-label-offset)
-					 (t
-					  elixir-basic-offset))))
-	       (if (< cur-indent 0)
-		   (setq cur-indent 0))))
-	    (t 
-	     (save-excursion
-	       (elixir-mode-message "other")
-	       (setq cur-indent (car (elixir-mode-other-indent))))))
-      (if cur-indent
-	  (indent-line-to cur-indent)
-        (indent-line-to 0)))))
+  (let ((ttype) (poffset) (noffset))
+    (save-excursion
+      (setq ttype (elixir-mode-find-type))
+      (setq noffset (cond ((eq ttype 'label)
+			   (+ (- (elixir-mode-previous-line-last-offset)
+				  elixir-basic-offset)
+			      elixir-match-label-offset))
+			  ((eq ttype 'key)
+			   (+ (- (elixir-mode-previous-line-last-offset)
+				 elixir-basic-offset)
+			      elixir-key-label-offset))
+			  ((eq ttype 'end)
+			   (- (elixir-mode-previous-line-last-offset)
+			      elixir-basic-offset))
+			  ((or (eq ttype 'normal) (eq ttype 'begin))
+			   (elixir-mode-previous-line-offset)))))
+    (indent-line-to noffset)))
 
 (defun elixir-mode-cygwin-path (expanded-file-name)
 	"Elixir mode get Cygwin absolute path name."
