@@ -1,38 +1,35 @@
-% Test for elixir-mode
+# Test for elixir-mode
 
-% This is a single line comment.
+# This is a single line comment.
 
-module Hello                    % module definition
-  def hello (person := "world") % method definition, with argument defaults
-    "Hello, " + person + "."    % using + as a string method
-  end                           % ending indentation
+defmodule Hello do
+  def hello(person) do
+    "Hello, " + person + "."
+  end
 end
-
-
-% Defining a variable
+# Defining a variable
 
 answer = 42
 
-% Functions
+# Functions
 
-sum = (x, y) -> x + y
-difference = (x, y) do
+sum = fn(x, y) -> x + y end
+difference = fn(x, y) do
   x - y
 end
 
-% Erlang builtins
+# Erlang builtins
 
-Erlang.is_atom(true) %=> true
+Erlang.is_atom(true)
 
-% If elixir-mode-higlight-operators is enabled, these will be colored.
+# If elixir-mode-higlight-operators is enabled, these will be colored.
 
-lotsofoperators = ((((4 + 4) div 2) * 3 - 4) rem 5 / 2).to_s % arithmetic and method operators
-h = #Hello() % `#' operator
-!false %=> true
-true && true %=> true
-true || false %=> true
+lotsofoperators = ((((4 + 4) div 2) * 3 - 4) rem 5 / 2).to_s
+!false #%=> true
+true && true #%=> true
+true || false #%=> true
 
-% Here are some atoms
+# Here are some atoms
 
 true
 false
@@ -40,11 +37,10 @@ nil
 'foo
 'bar
 
-% Here are some regular expressions
+# Here are some regular expressions
 
--r("[ \n\t]")
+%r("[ \n\t]")
 
-% Some modules
+# Some modules
 
-Date.today
-Timer.ms(-> 1 + 2)
+File.name("aa")

@@ -1,6 +1,6 @@
-# elixir-mode -- Emacs major mode for [Elixir](https://github.com/josevalim/elixir)
+# elixir-mode -- Emacs major mode for [Elixir](https://github.com/elixir-lang/elixir)
 
-![elixir-mode](https://img.skitch.com/20111112-tyhx1d5wqus29rx644f46ciu5c.png)
+![elixir-mode](http://elixir-lang.org/images/contents/home-code.png)
 
 ## Installation
 
@@ -45,7 +45,7 @@ Applies compile-on-save minor mode.
 
 #### elixir-mode-iex
 
-Launch `IEX` inside Emacs.
+Launch `IEX` inside Emacs.(buggy...)
 
 #### elixir-mode-opengithub
 
@@ -65,7 +65,7 @@ Print version info for elixir-mode.
 
 #### elixir-mode-indent-line
 
-Indent the current line. (Buggy right now.)
+Indent the current line. 
 
 ### Hooks
 
@@ -109,6 +109,21 @@ Should Cygwin paths be used on Windows?
 ##### Default: `"/cygdrive/C"`
 
 The prefix for Cygwin-style paths.
+
+#### elixir-basic-offset (integer)
+##### Default: default-tab-width (8)
+
+indent basic offset
+
+#### elixir-key-label-offset (integer)
+##### Default: 0
+
+for after, elsif, else, catch, rescue offset
+
+#### elixir-match-label-offset (integer)
+##### Default: 2
+
+for -> offset in cond, case 
 
 ### Keymapping
 
