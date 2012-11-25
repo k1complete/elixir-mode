@@ -208,15 +208,6 @@
 	"For use with operators."
 	:group 'font-lock-faces)
 
-(defvar font-lock-atom-face 'font-lock-atom-face)
-(defface font-lock-atom-face
-	'((((type tty) (class color)) nil)
-		(((class color) (background light))
-		(:foreground "magenta"))
-	(t nil))
-	"For use with atoms."
-	:group 'font-lock-faces)
-
 (defconst elixir-mode-font-lock-defaults
   (list
     '("#.*$" . font-lock-comment-face)                                                                                                  ; comments
@@ -227,8 +218,9 @@
     (when elixir-mode-highlight-operators `(,(concat "\\<" (regexp-opt elixir-mode-operator-names t) "\\>") . font-lock-operator-face)) ; operators
     '("\\(\\w*\\)\\s-*:?=" . font-lock-variable-name-face)                                                                              ; variables
     '("-[Rr].*[ \n\t]" . font-lock-constant-face)                                                                                       ; regexes
-    '("\\<\\(true\\|false\\|nil\\)\\>" . font-lock-atom-face)                                                                           ; atoms, boolean
-    '(":\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
+    '("\\<\\(true\\|false\\|nil\\)\\>" . font-lock-reference-face)                                                                           ; atoms, boolean
+    '("\\w*:\s" . font-lock-reference-face)
+    '(":\\w*" . font-lock-reference-face))                                                                                                   ; atoms, generic
 "Highlighting for Elixir mode.")
 
 (defun elixir-mode-takewhile (f l)
