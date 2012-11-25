@@ -119,7 +119,7 @@ There are no keyboard shortcuts included by default.
 
 This is still very alpha software; there are probably several
 bugs. Right now the indentation implementation needs some work, and
-the operator and atom font-locking doesn't appear to be working
+the operator font-locking doesn't appear to be working
 correctly.
 
 ## Notes

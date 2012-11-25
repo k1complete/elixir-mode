@@ -167,7 +167,7 @@
 	:group 'font-lock-faces)
 
 (defvar font-lock-atom-face 'font-lock-atom-face)
-(defface font-lock-operator-face
+(defface font-lock-atom-face
 	'((((type tty) (class color)) nil)
 		(((class color) (background light))
 		(:foreground "magenta"))
@@ -186,7 +186,7 @@
     '("\\(\\w*\\)\\s-*:?=" . font-lock-variable-name-face)                                                                              ; variables
 		'("-[Rr].*[ \n\t]" . font-lock-constant-face)                                                                                       ; regexes
     '("\\<\\(true\\|false\\|nil\\)\\>" . font-lock-atom-face)                                                                           ; atoms, boolean
-		'("'\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
+		'(":\\w*" . font-lock-atom-face))                                                                                                   ; atoms, generic
 "Highlighting for Elixir mode.")
 
 (defun elixir-mode-indent-line ()
