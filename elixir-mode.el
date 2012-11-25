@@ -74,6 +74,19 @@
   (if elixir-mode-debug-flag
       (message s objects)))
 
+(defvar elixir-mode-define-names '(
+  "def"
+  "defdelegate"
+  "defimpl"
+  "defmacro"
+  "defmacrop"
+  "defmodule"
+  "defoverridable"
+  "defp"
+  "defprotocol"
+  "defrecord"
+  "destructure")
+"Elixir mode def-like keywords.")
 (defvar elixir-mode-keyword-names '(
   "->"
   "bc"
@@ -211,7 +224,7 @@
 (defconst elixir-mode-font-lock-defaults
   (list
     '("#.*$" . font-lock-comment-face)                                                                                                  ; comments
-    '("^\\s *defp?\\s +\\([^( \t\n]+\\)" . font-lock-function-name-face)                                                                  ; methods
+    `(,(concat "^\\s *\\<" (regexp-opt elixir-mode-define-names t) "\\>\\s +\\([^( \t\n]+\\)") 2 font-lock-function-name-face)          ; methods
     `(,(concat "\\<" (regexp-opt elixir-mode-keyword-names t) "\\>") . font-lock-keyword-face)                                          ; keywords
     `(,(concat "\\<" (regexp-opt elixir-mode-builtin-names t) "\\>") . font-lock-builtin-face)                                          ; builtins
     `(,(concat "\\<" (regexp-opt elixir-mode-module-names t) "\\>") . font-lock-type-face)                                              ; core modules
