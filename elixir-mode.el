@@ -321,8 +321,9 @@
 			      elixir-basic-offset))
 			  ((or (eq ttype 'normal) (eq ttype 'begin))
 			   (elixir-mode-previous-line-offset)))))
+    (cond ((> 0 noffset) 
+	   (setq noffset 0)))
     (indent-line-to noffset)))
-
 (defun elixir-mode-cygwin-path (expanded-file-name)
 	"Elixir mode get Cygwin absolute path name."
 	(replace-regexp-in-string "^[a-zA-Z]:" elixir-mode-cygwin-prefix expanded-file-name t))
