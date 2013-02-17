@@ -131,6 +131,11 @@
   "catch"
   "rescue"
   "fn"
+  "function"
+  "%r"
+  "%R"
+  "%b"
+  "%B"
   "receive"
   "end")
 "Elixir mode keywords.")
@@ -270,8 +275,8 @@
 (defun elixir-mode-find-type ()
   "find keyword type in (begin|end|normal|label|key)"
   (progn
-    (elixir-mode-message "find-type")
-    (elixir-mode-message (thing-at-point 'line))
+    (elixir-mode-message "%s" "find-type")
+    (elixir-mode-message "%s" (thing-at-point 'line))
     (cond ((looking-at elixir-mode-endmark)
 	   'end)
 	  ((looking-at elixir-mode-beginmark)
@@ -374,7 +379,7 @@
 (defun elixir-mode-show-version ()
   "Elixir mode print version."
 	(interactive)
-	(message (concat "elixir-mode v" elixir-mode-version " " elixir-mode-date " by Humza Yaqoob")))
+	(message "%s" (concat "elixir-mode v" elixir-mode-version " " elixir-mode-date " by Humza Yaqoob")))
 
 (defvar elixir-mode-syntax-table
   (let ((elixir-mode-syntax-table (make-syntax-table)))
