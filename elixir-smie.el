@@ -146,6 +146,7 @@
            ("if" non-block-expr "COMMA" "do:" statement "COMMA" "else:" statement)
            ("try" "do" statements "after" statements "end")
            ("try" "do" statements "catch" match-statements "end")
+           ("try" "do" statements "rescue" match-statements "end")
            ("try" "do" statements "end")
            ("case" non-block-expr "do" match-statements "end")
            ("fn" match-statement "end")
