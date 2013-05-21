@@ -2,6 +2,10 @@
 
 ![elixir-mode](http://elixir-lang.org/images/contents/home-code.png)
 
+## DEPRECATED 
+
+you may get new [emacs-elixir](https://github.com/elixir-lang/emacs-elixir)
+
 ## Installation
 
 Simply add to your load path and require the mode to install.
